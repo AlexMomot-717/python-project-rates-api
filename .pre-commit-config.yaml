@@ -55,7 +55,7 @@ repos:
     rev: 7.1.1
     hooks:
       - id: flake8
-        exclude: tests/fixtures
+        exclude: "tests/fixtures.*|tests/.*"
   - repo: https://github.com/jorisroovers/gitlint
     rev: v0.19.1
     hooks:
