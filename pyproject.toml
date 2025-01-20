@@ -1,0 +1,43 @@
+[tool.poetry]
+name = "api-project"
+description = "api tool for navigation prices rates"
+authors = ["alexandra <momotav717@gmail.com>"]
+package-mode = false
+
+[tool.poetry.scripts]
+app = "rates_api.app:app"
+
+[tool.poetry.dependencies]
+python = ">=3.11"
+flask = "^3.1.0"
+gunicorn = "^23.0.0"
+psycopg2-binary = "^2.9.10"
+python-dotenv = "^1.0.1"
+
+[tool.poetry.group.dev.dependencies]
+types-psycopg2 = "^2.9.21.20241019"
+pytest = "^8.3.4"
+coverage = "^7.6.10"
+pytest-cov = "^6.0.0"
+pre-commit = "^4.0.1"
+black = "^24.10.0"
+mypy = "^1.14.1"
+flake8 = "^7.1.1"
+isort = "^5.13.2"
+gitlint = "^0.19.1"
+
+[tool.isort]
+# See https://github.com/timothycrosley/isort#multi-line-output-modes
+multi_line_output = 3
+include_trailing_comma = true
+default_section = "FIRSTPARTY"
+# Should be: 80 - 1
+line_length = 79
+
+[tool.mypy]
+python_version = 3.11
+strict = true
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
