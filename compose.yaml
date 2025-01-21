@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  app:
+    container_name: "rates_api"
+    build:
+      context: .
+      dockerfile: ./docker-images/backend/Dockerfile
+    env_file: docker-images/backend/.env.default
+    ports:
+      - "5000:5000"
+  postgres:
+    container_name: "task"
+    build:
+      context: ./docker-images/postgres
+      dockerfile: Dockerfile
+    ports:
+      - "5432:5432"
+    env_file: docker-images/postgres/.env.default
+    volumes:
+      - postgres:/var/lib/postgres/data
+
+volumes:
+  postgres:
+    name: postgres-volume

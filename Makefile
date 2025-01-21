@@ -16,3 +16,24 @@ lint:
 
 test:
 	poetry run pytest -s
+
+test-coverage:
+	poetry run pytest --cov=page_analyzer --cov-report xml --cov-report=html tests/
+
+build-services:
+	@docker compose build --no-cache
+
+up:
+	@docker compose up -d
+
+down:
+	@docker compose down
+
+start-services:
+	@docker compose start
+
+stop-services:
+	@docker compose stop
+
+restart:
+	@docker compose up --build
