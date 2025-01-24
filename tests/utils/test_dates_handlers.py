@@ -1,9 +1,10 @@
+from datetime import date
+
 from rates_api.utils.dates_handlers import (
     check_date_format,
     convert_date_type,
     dates_validator,
-    extract_data,
-    get_dates,
+    parse_date,
 )
 
 
@@ -16,7 +17,8 @@ def test_dates_validator() -> None:
     result = dates_validator(date_from=date_from, date_to=date_to)
 
     # then
-    assert result is True
+    expected_result = (date(2016, 1, 1), date(2016, 1, 10))
+    assert result == expected_result
 
 
 def test_dates_validator_incorrect_format() -> None:
@@ -28,7 +30,7 @@ def test_dates_validator_incorrect_format() -> None:
     result = dates_validator(date_from=date_from, date_to=date_to)
 
     # then
-    assert result is False
+    assert result is None
 
 
 def test_dates_validator_date_to_is_less_than_date_from() -> None:
@@ -40,7 +42,7 @@ def test_dates_validator_date_to_is_less_than_date_from() -> None:
     result = dates_validator(date_from=date_from, date_to=date_to)
 
     # then
-    assert result is False
+    assert result is None
 
 
 def test_check_date_format() -> None:
@@ -89,27 +91,14 @@ def test_convert_date_type():
     assert str(result_type) == expected_type
 
 
-def test_extract_data():
+def test_date_parse_date():
     # given
     date_param = "2016-01-10"
 
     # when
-    result = extract_data(date_param)
+    result = parse_date(date_param)
 
     # then
     result_type = type(result)
     expected_type = "<class 'datetime.datetime'>"
     assert str(result_type) == expected_type
-
-
-def test_get_dates():
-    # given
-    date_from = "2016-01-01"
-    date_to = "2016-01-03"
-
-    # when
-    result_date_range = get_dates(date_from, date_to)
-
-    # then
-    expected_date_range = ["2016-01-01", "2016-01-02", "2016-01-03"]
-    assert result_date_range == expected_date_range

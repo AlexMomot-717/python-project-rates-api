@@ -315,3 +315,9 @@ CNSGH	NLRTM	2016-01-31	1200
 
 -- Make Jan 3 have no prices at all
 DELETE FROM prices WHERE day = date'2016-01-03';
+
+--
+-- Create database copy for tests:
+--
+
+CREATE DATABASE testapi_db TEMPLATE task;

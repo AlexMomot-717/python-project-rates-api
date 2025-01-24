@@ -4,7 +4,7 @@ install:
 dev:
     poetry run flask --app rates_api.app:app --debug run
 
-PORT ?= 5000
+PORT ?= 8000
 start:
 	poetry run gunicorn -w 5 -b 127.0.0.1:$(PORT) rates_api.app:app
 
@@ -15,7 +15,7 @@ lint:
 	poetry run flake8
 
 test:
-	poetry run pytest -s
+	poetry run pytest
 
 test-coverage:
 	poetry run pytest --cov=page_analyzer --cov-report xml --cov-report=html tests/
