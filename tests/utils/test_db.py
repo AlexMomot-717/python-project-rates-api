@@ -1,107 +1,42 @@
-from rates_api.utils.db import get_available_dates, get_daily_rates
+from datetime import date
 
-
-def test_get_available_dates(test_database: None) -> None:
-    # given
-    date_from = "2016-01-01"
-    date_to = "2016-01-10"
-    org = "CNSGH"
-    dst = "NLRTM"
-
-    # when
-    date_from_avail, date_to_avail = get_available_dates(date_from, date_to, org, dst)
-
-    # then
-    assert str(date_from_avail) == date_from
-    assert str(date_to_avail) == date_to
-
-
-def test_get_available_dates_partly_available(test_database: None) -> None:
-    # given
-    date_from = "2015-01-01"
-    date_to = "2017-01-10"
-    org = "CNSGH"
-    dst = "NLRTM"
-
-    # when
-    date_from_avail, date_to_avail = get_available_dates(date_from, date_to, org, dst)
-
-    # then
-    expected_date_from_available = "2016-01-01"
-    expected_date_to_available = "2016-01-31"
-    assert str(date_from_avail) == expected_date_from_available
-    assert str(date_to_avail) == expected_date_to_available
-
-
-def test_get_available_dates_are_the_same(test_database: None) -> None:
-    # given
-    date_from = "2016-01-01"
-    date_to = "2016-01-01"
-    org = "CNSGH"
-    dst = "NLRTM"
-
-    # when
-    date_from_avail, date_to_avail = get_available_dates(date_from, date_to, org, dst)
-
-    # then
-    expected_date_from_available = "2016-01-01"
-    expected_date_to_available = "2016-01-01"
-    assert str(date_from_avail) == expected_date_from_available
-    assert str(date_to_avail) == expected_date_to_available
-
-
-def test_get_available_dates_are_earlier(test_database: None) -> None:
-    # given
-    date_from = "2015-01-01"
-    date_to = "2015-03-10"
-    org = "CNSGH"
-    dst = "NLRTM"
-
-    # when
-    result = get_available_dates(date_from, date_to, org, dst)
-
-    # then
-    assert result is None
-
-
-def test_get_available_dates_are_later(test_database: None) -> None:
-    # given
-    date_from = "2016-03-01"
-    date_to = "2016-04-01"
-    org = "CNSGH"
-    dst = "NLRTM"
-
-    # when
-    result = get_available_dates(date_from, date_to, org, dst)
-
-    # then
-    assert result is None
+from psycopg2.extras import RealDictRow
+from rates_api.utils.db import get_daily_rates
 
 
 def test_get_daily_rates(test_database: None) -> None:
     # given
+    date_from = date(2015, 12, 30)
+    date_to = date(2016, 1, 4)
     org = "CNSGH"
     dst = "RULED"
 
     # when
-    daily_rates = get_daily_rates(org, dst)
+    daily_rates = get_daily_rates(date_from, date_to, org, dst)
 
     # then
-    expected_rate_data = {"day": "2016-01-01", "average_price": 2009}
+    expected_rate_piece = {"day": "2016-01-01", "average_price": 2009}
     rate_selection = {
-        "day": str(daily_rates[0]["day"]),
-        "average_price": int(daily_rates[0]["rate"]),
+        "day": str(daily_rates[2]["day"]),
+        "average_price": daily_rates[2]["avg_price"],
     }
-    assert rate_selection == expected_rate_data
+    assert rate_selection == expected_rate_piece
 
 
-def test_get_daily_rates_non_existent_port_codet(test_database: None) -> None:
+def test_get_daily_rates_data_are_not_found(test_database: None) -> None:
     # given
+    date_from = date(2015, 12, 31)
+    date_to = date(2016, 1, 1)
     org = "CNSGH"
-    dst = "YYYY"
+    dst = "YYYYY"
 
     # when
-    daily_rates = get_daily_rates(org, dst)
+    daily_rates = get_daily_rates(date_from, date_to, org, dst)
+    print(daily_rates)
 
     # then
-    assert daily_rates is None
+    expected_daily_rates = [
+        RealDictRow([("day", date(2015, 12, 31)), ("avg_price", None)]),
+        RealDictRow([("day", date(2016, 1, 1)), ("avg_price", None)]),
+    ]
+    assert daily_rates == expected_daily_rates

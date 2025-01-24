@@ -1,15 +1,11 @@
 from flask.testing import FlaskClient
-from tests.fixtures.expected_jsons import (
-    EXPECTED_JSON,
-    EXPECTED_JSON_DATES_ARE_PARTLY_AVAILABLE,
-    EXPECTED_JSON_DATES_ARE_THE_SAME,
-)
+from tests.fixtures.expected_jsons import EXPECTED_JSON
 
 
 def test_get_rates(client: FlaskClient, test_database: None) -> None:
     # given
-    date_from = "2016-01-01"
-    date_to = "2016-01-10"
+    date_from = "2015-12-30"
+    date_to = "2016-02-02"
     org = "CNSGH"
     dst = "NLRTM"
 
@@ -22,28 +18,6 @@ def test_get_rates(client: FlaskClient, test_database: None) -> None:
 
     # then
     expected_json = EXPECTED_JSON
-    assert response.status_code == 200
-    assert response.get_json() == expected_json
-
-
-def test_get_rates_dates_are_partly_available(
-    client: FlaskClient, test_database: None
-) -> None:
-    # given
-    date_from = "2015-10-30"
-    date_to = "2016-02-28"
-    org = "CNSGH"
-    dst = "NLRTM"
-
-    route = (
-        f"/rates?date_from={date_from}&date_to={date_to}&origin={org}&destination={dst}"
-    )
-
-    # when
-    response = client.get(route)
-
-    # then
-    expected_json = EXPECTED_JSON_DATES_ARE_PARTLY_AVAILABLE
     assert response.status_code == 200
     assert response.get_json() == expected_json
 
@@ -65,7 +39,7 @@ def test_get_rates_from_and_to_dates_are_the_same(
     response = client.get(route)
 
     # then
-    expected_json = EXPECTED_JSON_DATES_ARE_THE_SAME
+    expected_json = [{"day": "2016-01-03", "average_price": None}]
     assert response.status_code == 200
     assert response.get_json() == expected_json
 
@@ -74,8 +48,8 @@ def test_get_rates_lowercase_port_code(
     client: FlaskClient, test_database: None
 ) -> None:
     # given
-    date_from = "2016-01-01"
-    date_to = "2016-01-10"
+    date_from = "2015-12-30"
+    date_to = "2016-02-02"
     org = "cnsgh"
     dst = "nlrtm"
 
@@ -97,7 +71,7 @@ def test_get_rates_non_existent_origin(
 ) -> None:
     # given
     date_from = "2016-01-01"
-    date_to = "2016-01-10"
+    date_to = "2016-01-02"
     org = "RULED"
     dst = "NLRTM"
 
@@ -109,8 +83,11 @@ def test_get_rates_non_existent_origin(
     response = client.get(route)
 
     # then
-    expected_json = {"error": "Not found"}
-    assert response.status_code == 404
+    expected_json = [
+        {"day": "2016-01-01", "average_price": None},
+        {"day": "2016-01-02", "average_price": None},
+    ]
+    assert response.status_code == 200
     assert response.get_json() == expected_json
 
 
@@ -118,8 +95,8 @@ def test_get_rates_non_existent_destination(
     client: FlaskClient, test_database: None
 ) -> None:
     # given
-    date_from = "2016-01-01"
-    date_to = "2016-01-10"
+    date_from = "2016-01-03"
+    date_to = "2016-01-05"
     org = "CNSGH"
     dst = "HTOVN"
 
@@ -131,8 +108,12 @@ def test_get_rates_non_existent_destination(
     response = client.get(route)
 
     # then
-    expected_json = {"error": "Not found"}
-    assert response.status_code == 404
+    expected_json = [
+        {"day": "2016-01-03", "average_price": None},
+        {"day": "2016-01-04", "average_price": None},
+        {"day": "2016-01-05", "average_price": None},
+    ]
+    assert response.status_code == 200
     assert response.get_json() == expected_json
 
 
@@ -153,8 +134,8 @@ def test_get_rates_incorrect_date_format(
     response = client.get(route)
 
     # then
-    expected_json = {"error": "Not found"}
-    assert response.status_code == 404
+    expected_json = {"error": "Incorrect date or sequence of dates"}
+    assert response.status_code == 422
     assert response.get_json() == expected_json
 
 
@@ -175,8 +156,8 @@ def test_get_rates_dates_are_incorrect(
     response = client.get(route)
 
     # then
-    expected_json = {"error": "Not found"}
-    assert response.status_code == 404
+    expected_json = {"error": "Incorrect date or sequence of dates"}
+    assert response.status_code == 422
     assert response.get_json() == expected_json
 
 
@@ -184,7 +165,7 @@ def test_get_rates_earlier_than_available_date_range(
     client: FlaskClient, test_database: None
 ) -> None:
     # given
-    date_from = "2010-05-07"
+    date_from = "2014-10-08"
     date_to = "2014-10-10"
     org = "CNSGH"
     dst = "NLRTM"
@@ -197,19 +178,23 @@ def test_get_rates_earlier_than_available_date_range(
     response = client.get(route)
 
     # then
-    expected_json = {"error": "Not found"}
-    assert response.status_code == 404
+    expected_json = [
+        {"day": "2014-10-08", "average_price": None},
+        {"day": "2014-10-09", "average_price": None},
+        {"day": "2014-10-10", "average_price": None},
+    ]
+    assert response.status_code == 200
     assert response.get_json() == expected_json
 
 
-def test_get_rates_later_than_available_date_range(
+def test_get_rates_not_available_date_range_ports(
     client: FlaskClient, test_database: None
 ) -> None:
     # given
-    date_from = "2016-02-01"
-    date_to = "2016-03-30"
-    org = "CNSGH"
-    dst = "NLRTM"
+    date_from = "2024-11-25"
+    date_to = "2024-11-26"
+    org = "SSSSS"
+    dst = "ttg"
 
     route = (
         f"/rates?date_from={date_from}&date_to={date_to}&origin={org}&destination={dst}"
@@ -219,6 +204,9 @@ def test_get_rates_later_than_available_date_range(
     response = client.get(route)
 
     # then
-    expected_json = {"error": "Not found"}
-    assert response.status_code == 404
+    expected_json = [
+        {"day": "2024-11-25", "average_price": None},
+        {"day": "2024-11-26", "average_price": None},
+    ]
+    assert response.status_code == 200
     assert response.get_json() == expected_json
